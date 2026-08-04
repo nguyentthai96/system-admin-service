@@ -1,79 +1,39 @@
 plugins {
-	kotlin("jvm") version "1.9.25"
-	kotlin("plugin.spring") version "1.9.25"
-	id("org.springframework.boot") version "3.4.0"
-	id("io.spring.dependency-management") version "1.1.6"
-	id("org.hibernate.orm") version "6.6.2.Final"
-	id("org.graalvm.buildtools.native") version "0.10.3"
-	kotlin("plugin.jpa") version "1.9.25"
+    id("ntt.spring-app-conventions")
+    alias(libs.plugins.kotlin.jpa)
 }
 
 group = "com.ntt"
 version = "0.0.1-SNAPSHOT"
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom(configurations.annotationProcessor.get())
-	}
-}
-
-repositories {
-	mavenCentral()
-	maven { url = uri("https://repo.spring.io/milestone") }
-}
-
-extra["springModulithVersion"] = "1.3.0-M3"
-
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-batch")
-	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.springframework.modulith:spring-modulith-starter-core")
-	implementation("org.springframework.modulith:spring-modulith-starter-jdbc")
-	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("org.springframework.batch:spring-batch-test")
-	testImplementation("org.springframework.modulith:spring-modulith-starter-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+//  - BASE-CORE STARTERS (provides base-core, base-model, common-log transitively)
+    implementation(platform("com.ntt:platform:0.0.1-SNAPSHOT"))
+    implementation("com.ntt:base-web-starter")
+    implementation("com.ntt:base-data-starter")
+    implementation("com.ntt:common-log")
+//  - MAIN
+    implementation("org.springframework.boot:spring-boot-starter-batch")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.modulith:spring-modulith-starter-core")
+    implementation("org.springframework.modulith:spring-modulith-starter-jdbc")
+    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
+//  - DEVELOPMENT
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+//  - TESTING
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.batch:spring-batch-test")
+    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
+    testImplementation("com.ntt:base-testing-starter")
+    testRuntimeOnly("com.h2database:h2")
 }
 
-dependencyManagement {
-	imports {
-		mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
-	}
-}
-
-kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
-}
-
-hibernate {
-	enhancement {
-		enableAssociationManagement = true
-	}
-}
-
-allOpen {
-	annotation("jakarta.persistence.Entity")
-	annotation("jakarta.persistence.MappedSuperclass")
-	annotation("jakarta.persistence.Embeddable")
-}
-
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
+// Disable GraalVM AOT processing — runs as standard JVM app.
+// AOT processAot conflicts with BaseEntity dual-@Id inheritance in base-core.
+tasks.named("processAot") { enabled = false }
+tasks.named("processTestAot") { enabled = false }
