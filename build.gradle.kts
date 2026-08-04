@@ -19,7 +19,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.modulith:spring-modulith-starter-core")
-    implementation("org.springframework.modulith:spring-modulith-starter-jdbc")
     implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 //  - DEVELOPMENT
     developmentOnly("org.springframework.boot:spring-boot-devtools")
