@@ -2,8 +2,7 @@ plugins {
     id("ntt.spring-app-conventions")
 }
 
-group = "com.ntt"
-version = "0.0.1-SNAPSHOT"
+// group and version are inherited from gradle.properties (Single Source of Truth)
 
 dependencies {
     implementation(platform("com.ntt:platform:0.0.1-SNAPSHOT"))

@@ -29,6 +29,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
+    // Keep in sync with libs.versions.toml [versions] foojay-resolver
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
