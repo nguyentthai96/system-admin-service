@@ -3,8 +3,8 @@ spring:
     name: system-admin-service
   datasource:
     url: jdbc:postgresql://localhost:5432/system_admin_db
-    username: postgres
-    password: postgres
+    username: auth_user
+    password: auth_pass
   jpa:
     hibernate:
       ddl-auto: validate
@@ -26,7 +26,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
-  port: 8082
+  port: 8083
 
 # JWT validation — use auth-service's RSA public key
 app:

@@ -9,6 +9,8 @@ extra["springCloudVersion"] = libs.versions.spring.cloud.get()
 
 dependencies {
     implementation(platform("com.ntt:platform:0.0.1-SNAPSHOT"))
+    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}"))
+    annotationProcessor(platform("com.ntt:platform:0.0.1-SNAPSHOT"))
 //  - BASE-CORE STARTERS
     implementation("com.ntt:base-web-starter")
     implementation("com.ntt:base-data-starter")
@@ -38,11 +40,6 @@ dependencies {
     testRuntimeOnly("com.h2database:h2")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
-}
 
 tasks.withType<Test> {
     useJUnitPlatform()
