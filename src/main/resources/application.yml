@@ -1,6 +1,9 @@
 spring:
   application:
     name: system-admin-service
+  docker:
+    compose:
+      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/system_admin_db
     username: auth_user
