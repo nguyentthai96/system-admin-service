@@ -290,7 +290,8 @@ class MenuPermissionService(
                 isVisible = menu.isVisible,
                 permissions = effectivePerms.toList(),
                 buttons = buttons,
-                children = children
+                children = children,
+                translateKey = menu.translateKey
             )
         }
 

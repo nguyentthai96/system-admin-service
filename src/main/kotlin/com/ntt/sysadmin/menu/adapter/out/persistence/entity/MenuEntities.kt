@@ -61,6 +61,9 @@ class MenuItemEntity : SnowflakePersistentAuditableEntity() {
     @Column(name = "metadata_json", columnDefinition = "TEXT")
     var metadataJson: String? = null
 
+    @Column(name = "translate_key", length = 200)
+    var translateKey: String? = null
+
     companion object {
         const val TYPE_DIRECTORY = "DIRECTORY"
         const val TYPE_MENU = "MENU"

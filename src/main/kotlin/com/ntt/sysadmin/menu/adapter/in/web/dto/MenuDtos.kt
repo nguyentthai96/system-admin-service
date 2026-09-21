@@ -46,7 +46,8 @@ data class MenuTreeNodeResponse(
     val isVisible: Boolean,
     val permissions: List<String>,
     val buttons: List<MenuButtonResponse>,
-    val children: List<MenuTreeNodeResponse>
+    val children: List<MenuTreeNodeResponse>,
+    val translateKey: String? = null
 )
 
 data class MenuButtonResponse(
