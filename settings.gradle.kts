@@ -1,6 +1,16 @@
 pluginManagement {
     repositories {
         mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/nguyentthai96/base-core")
+            credentials {
+                username = providers.gradleProperty("gpr.user")
+                    .orElse(providers.environmentVariable("GITHUB_ACTOR")).getOrElse("")
+                password = providers.gradleProperty("gpr.key")
+                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).getOrElse("")
+            }
+        }
         gradlePluginPortal()
     }
     // Map convention plugin IDs to the published build-logic artifact
@@ -18,6 +28,16 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/nguyentthai96/base-core")
+            credentials {
+                username = providers.gradleProperty("gpr.user")
+                    .orElse(providers.environmentVariable("GITHUB_ACTOR")).getOrElse("")
+                password = providers.gradleProperty("gpr.key")
+                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).getOrElse("")
+            }
+        }
         mavenCentral()
     }
     // Share version catalog from base-core — single source of truth for all versions
@@ -34,3 +54,4 @@ plugins {
 }
 
 rootProject.name = "system-admin-service"
+
