@@ -7,6 +7,7 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
 import org.slf4j.LoggerFactory
+import com.ntt.basecore.context.RequestContextHolder as BaseRequestContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -55,9 +56,10 @@ class AuditAspect(
         val action = "${className}.$methodName"
 
         val request = getCurrentRequest()
-        val ipAddress = request?.let { getClientIp(it) }
-        val userAgent = request?.getHeader("User-Agent")
-        val userId = extractUserId(request)
+        val baseContext = BaseRequestContextHolder.getOrNull()
+        val ipAddress = baseContext?.clientIp ?: request?.let { getClientIp(it) }
+        val userAgent = baseContext?.userAgent ?: request?.getHeader("User-Agent")
+        val userId = baseContext?.userId ?: extractUserId(request)
 
         val args = joinPoint.args
         val inputSnapshot = try {
