@@ -13,6 +13,7 @@ dependencies {
     annotationProcessor(platform("com.ntt:platform:0.0.1-SNAPSHOT"))
 //  - BASE-CORE STARTERS
     implementation("com.ntt:base-web-starter")
+    implementation("com.ntt:base-security-starter")
     implementation("com.ntt:base-data-starter")
     implementation("com.ntt:common-log")
 //  - MAIN
