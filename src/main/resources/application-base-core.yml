@@ -1,0 +1,139 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Base-Core Shared Configuration
+# ═══════════════════════════════════════════════════════════════════════
+# Single source of truth for all base-core starter configs.
+# Import via: spring.config.import: classpath:application-base-core.yml
+# Each service can override individual properties in its own application.yml
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Snowflake ID Generator ──────────────────────────────────────────
+base-core:
+  snowflake:
+    node-id: -1                        # -1 = auto-detect from hostname
+    epoch: 1704067200000               # 2024-01-01T00:00:00Z
+
+# ── HTTP Logging (common-log) ───────────────────────────────────────
+base:
+  logging:
+    http:
+      enabled: true
+      include-headers: true
+      include-body: true
+      max-body-length: 10000           # max chars to log per body
+      sensitive-headers: []            # additional headers to mask (merged with defaults)
+    sensitive:
+      patterns:
+        - password
+        - token
+        - secret
+        - ssn
+        - creditCard
+        - cardNumber
+        - cvv
+        - pin
+      mask-value: "********"
+
+# ── Filter Chain (base-web-starter) ─────────────────────────────────
+app:
+  filters:
+    exclude-paths:                     # shared exclude for all filters (Union Merge)
+      - /actuator/**
+      - /health/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+    content-cache-limit: 1048576       # 1MB — skip caching if payload exceeds this
+    observation-enabled: true          # per-filter Micrometer Observation metrics
+
+  # ── Request Context (base-web-starter) ────────────────────────────
+  context:
+    enabled: true
+    correlation-id-header: X-Correlation-ID
+    request-id-header: X-Request-ID
+    tenant-id-header: X-Tenant-Id
+    app-version-header: X-App-Version
+    client-platform-header: X-Client-Platform
+    device-fingerprint-header: X-Device-Fingerprint
+    trusted-proxies:
+      - 127.0.0.1
+      - "::1"
+      - "0:0:0:0:0:0:0:1"
+
+  # ── Idempotency (base-web-starter) ────────────────────────────────
+  idempotency:
+    enabled: true
+    header-name: X-Idempotency-Key
+    ttl-seconds: 86400                 # 24 hours
+    cache-prefix: "idempotency:"
+
+  # ── Security (base-security-starter) ──────────────────────────────
+  security:
+    jwt:
+      public-key-path: ${JWT_PUBLIC_KEY_PATH:}
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-change-in-production}
+      issuer: auth-service
+      clock-skew-seconds: 60
+
+  # ── Cipher (base-security-starter) ────────────────────────────────
+  cipher:
+    enabled: false                     # E2EE off by default — enable per service
+    http:
+      enabled: false
+      exclude-paths:
+        - /actuator/**
+        - /health
+        - /v3/api-docs/**
+    anti-replay:
+      enabled: true
+      window-seconds: 300
+      initial-window-seconds: 600
+      nonce-ttl-seconds: 600
+      nonce-cache-prefix: "cipher:nonce:"
+
+  # ── Resilience (base-resilience-starter) ──────────────────────────
+  resilience:
+    rate-limit:
+      enabled: true
+
+  # ── Observability (base-observability-starter) ────────────────────
+  observability:
+    tracing:
+      enabled: true
+
+  # ── CORS ──────────────────────────────────────────────────────────
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+# ── Actuator & Metrics ──────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,filters
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    elasticsearch:
+      enabled: false
+    reactive-elasticsearch:
+      enabled: false
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+
+# ── Server Defaults ────────────────────────────────────────────────
+spring:
+  jackson:
+    default-property-inclusion: non_null
+  threads:
+    virtual:
+      enabled: true
+
+logging:
+  level:
+    com.ntt.basecore: INFO
+    org.springframework.security: INFO
