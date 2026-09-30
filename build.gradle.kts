@@ -15,7 +15,10 @@ dependencies {
     implementation("com.ntt:base-web-starter")
     implementation("com.ntt:base-security-starter")
     implementation("com.ntt:base-data-starter")
+    implementation("com.ntt:base-file-starter")
     implementation("com.ntt:common-log")
+    implementation("org.apache.poi:poi-ooxml:5.3.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 //  - MAIN
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")

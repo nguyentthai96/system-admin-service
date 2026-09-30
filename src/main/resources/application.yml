@@ -47,3 +47,7 @@ management:
   metrics:
     tags:
       application: system-admin-service
+
+# ── Spring Modulith Event Outbox ────────────────────────────────────
+spring.modulith:
+  republish-outstanding-events-on-restart: true

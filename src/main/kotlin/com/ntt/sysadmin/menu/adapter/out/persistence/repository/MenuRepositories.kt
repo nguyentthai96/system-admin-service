@@ -8,11 +8,11 @@ import org.springframework.stereotype.Repository
 @Repository
 interface MenuItemRepository : JpaRepository<MenuItemEntity, Long> {
 
-    fun findByDomainIdAndIsActiveTrue(domainId: Long): List<MenuItemEntity>
+    fun findByDomainIdAndActiveTrue(domainId: Long): List<MenuItemEntity>
 
-    fun findByParentIdAndIsActiveTrue(parentId: Long?): List<MenuItemEntity>
+    fun findByParentIdAndActiveTrue(parentId: Long?): List<MenuItemEntity>
 
-    @Query("SELECT m FROM MenuItemEntity m WHERE m.domainId = :domainId AND m.isActive = true ORDER BY m.level ASC, m.sortOrder ASC")
+    @Query("SELECT m FROM MenuItemEntity m WHERE m.domainId = :domainId AND m.active = true ORDER BY m.level ASC, m.sortOrder ASC")
     fun findAllByDomainOrdered(domainId: Long): List<MenuItemEntity>
 
     fun findByCodeAndDomainId(code: String, domainId: Long): MenuItemEntity?

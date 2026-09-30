@@ -30,7 +30,12 @@ enum class SysAdminErrorCode(
     CONFIG_NOT_FOUND("SYS_015", "sysadmin.config_not_found", "System config not found", HttpStatus.NOT_FOUND),
     INVALID_CONFIG_TYPE("SYS_016", "sysadmin.invalid_config_type", "Invalid config value type", HttpStatus.BAD_REQUEST),
     AUDIT_QUERY_FAILED("SYS_017", "sysadmin.audit_query_failed", "Audit query failed", HttpStatus.INTERNAL_SERVER_ERROR),
-    MAX_DEPTH_EXCEEDED("SYS_018", "sysadmin.max_depth_exceeded", "Maximum tree depth exceeded", HttpStatus.BAD_REQUEST);
+    MAX_DEPTH_EXCEEDED("SYS_018", "sysadmin.max_depth_exceeded", "Maximum tree depth exceeded", HttpStatus.BAD_REQUEST),
+    SNAPSHOT_NOT_FOUND("SYS_019", "sysadmin.snapshot_not_found", "Snapshot not found", HttpStatus.NOT_FOUND),
+    ROLLBACK_CONFLICT("SYS_020", "sysadmin.rollback_conflict", "Rollback conflict detected with newer modifications", HttpStatus.CONFLICT),
+    IMPORT_VALIDATION_FAILED("SYS_021", "sysadmin.import_validation_failed", "Import data validation failed", HttpStatus.BAD_REQUEST),
+    CONFIG_CIRCULAR_DEPENDENCY("SYS_022", "sysadmin.config_circular_dependency", "Circular dependency detected among import tables", HttpStatus.CONFLICT),
+    IMPORT_CHECKSUM_MISMATCH("SYS_023", "sysadmin.import_checksum_mismatch", "Import file checksum mismatch", HttpStatus.BAD_REQUEST);
 
     private val delegate = object : ErrorCodeBase(errorCode, msgCode, description) {}
 

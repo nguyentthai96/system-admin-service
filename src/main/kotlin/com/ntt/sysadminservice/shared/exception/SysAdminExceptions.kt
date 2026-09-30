@@ -31,3 +31,17 @@ class InvalidTransitionException(
 class AlreadyProcessedException(
     stepId: Long
 ) : SysAdminException(SysAdminErrorCode.ALREADY_PROCESSED, "Workflow step already processed: $stepId", HttpStatus.CONFLICT)
+
+class SnapshotNotFoundException(
+    snapshotId: String
+) : SysAdminException(SysAdminErrorCode.SNAPSHOT_NOT_FOUND, "Snapshot not found: $snapshotId", HttpStatus.NOT_FOUND)
+
+class RollbackConflictException(
+    detail: String,
+    val conflicts: List<String> = emptyList()
+) : SysAdminException(SysAdminErrorCode.ROLLBACK_CONFLICT, detail, HttpStatus.CONFLICT)
+
+class ImportValidationException(
+    detail: String
+) : SysAdminException(SysAdminErrorCode.IMPORT_VALIDATION_FAILED, detail, HttpStatus.BAD_REQUEST)
+
