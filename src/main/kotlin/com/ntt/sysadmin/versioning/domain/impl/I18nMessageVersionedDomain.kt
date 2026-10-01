@@ -3,6 +3,7 @@ package com.ntt.sysadmin.versioning.domain.impl
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ntt.basecore.domain.file.ColumnDefinition
 import com.ntt.basecore.domain.file.ExportTemplate
+import com.ntt.sysadmin.i18n.application.I18nRedisSyncService
 import com.ntt.sysadmin.versioning.domain.VersionedConfigDomain
 import com.ntt.sysadmin.versioning.domain.entity.I18nMessageEntity
 import com.ntt.sysadmin.versioning.domain.entity.I18nMessageRepository
@@ -19,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional
 class I18nMessageVersionedDomain(
     private val repository: I18nMessageRepository,
     private val redisTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val syncService: I18nRedisSyncService
 ) : VersionedConfigDomain<I18nMessageEntity> {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -65,13 +67,22 @@ class I18nMessageVersionedDomain(
                 repository.save(newEntity)
             }
 
-            // Invalidate Redis cache for updated message
+            // Update Redis Hash for restored message (hash-based operations — FR-013)
             try {
-                redisTemplate.delete("i18n:${snapshotItem.locale}:${snapshotItem.code}")
+                if (snapshotItem.isActive) {
+                    redisTemplate.opsForHash<String, String>()
+                        .put("i18n:data:${snapshotItem.locale}", snapshotItem.code, snapshotItem.message)
+                } else {
+                    redisTemplate.opsForHash<String, String>()
+                        .delete("i18n:data:${snapshotItem.locale}", snapshotItem.code)
+                }
             } catch (ex: Exception) {
-                log.warn("Redis eviction failed for key {}:{}: {}", snapshotItem.code, snapshotItem.locale, ex.message)
+                log.warn("Redis hash update failed for {}:{}: {}", snapshotItem.code, snapshotItem.locale, ex.message)
             }
         }
+
+        // Publish full invalidation to evict all consumer L1 caches
+        syncService.publishFullInvalidation()
     }
 
     override fun exportTemplate(): ExportTemplate<I18nMessageEntity> {

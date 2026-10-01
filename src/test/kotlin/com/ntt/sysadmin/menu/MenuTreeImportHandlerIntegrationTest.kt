@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
  * - Parent relationships are correctly restored after two-pass execution
  * - DELETE_AND_INSERT mode clears and re-inserts correctly
  */
-@SpringBootTest
+@SpringBootTest(classes = [com.ntt.systemadminservice.SystemAdminServiceApplication::class])
 @ActiveProfiles("test")
 @Transactional
 class MenuTreeImportHandlerIntegrationTest {

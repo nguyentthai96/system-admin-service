@@ -30,7 +30,8 @@ class DepartmentTreeImportHandler(
 ) {
     override val dependencies: Set<String> get() = setOf("domain_configs")
 
-    override fun extractId(entity: DepartmentEntity): Long = entity.id
+    override fun extractId(entity: DepartmentEntity): Long =
+        checkNotNull(entity.id) { "DepartmentEntity id must not be null" }
 
     override fun extractParentId(entity: DepartmentEntity): Long? = entity.parentId
 

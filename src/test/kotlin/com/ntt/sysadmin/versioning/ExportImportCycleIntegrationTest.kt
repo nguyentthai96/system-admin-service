@@ -22,7 +22,7 @@ import java.security.MessageDigest
  * - Import reads JSON and processes via RelationalImportCoordinator
  * - Data integrity verified via checksum match
  */
-@SpringBootTest
+@SpringBootTest(classes = [com.ntt.systemadminservice.SystemAdminServiceApplication::class])
 @ActiveProfiles("test")
 class ExportImportCycleIntegrationTest {
 

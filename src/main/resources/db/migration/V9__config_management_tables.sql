@@ -45,3 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_i18n_messages_module ON i18n_messages (module);
 COMMENT ON TABLE sys_config_milestone IS 'Configuration milestones grouping multi-domain snapshots (FR-009)';
 COMMENT ON TABLE sys_config_snapshot IS 'Point-in-time domain snapshot storage with JSONB payload (FR-008, FR-009)';
 COMMENT ON TABLE i18n_messages IS 'Multilingual i18n translation messages managed dynamically (FR-001)';
+COMMENT ON COLUMN i18n_messages.code IS 'Message key matching ErrorCodeBase.msgCode (e.g., auth.rate_limited)';
+COMMENT ON COLUMN i18n_messages.locale IS 'BCP 47 locale tag (e.g., en, vi)';
+COMMENT ON COLUMN i18n_messages.message IS 'MessageFormat template with {0}, {1} placeholders';
+COMMENT ON COLUMN i18n_messages.module IS 'Service grouping for bulk operations (e.g., auth, common)';

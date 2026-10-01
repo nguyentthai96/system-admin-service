@@ -26,7 +26,8 @@ class MenuTreeImportHandler(
 ) {
     override val dependencies: Set<String> get() = setOf("domain_configs")
 
-    override fun extractId(entity: MenuItemEntity): Long = entity.id
+    override fun extractId(entity: MenuItemEntity): Long =
+        checkNotNull(entity.id) { "MenuItemEntity id must not be null" }
 
     override fun extractParentId(entity: MenuItemEntity): Long? = entity.parentId
 
