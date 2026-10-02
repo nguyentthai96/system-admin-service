@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class DomainConfigService(
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val configEventPublisher: ConfigEventPublisher,
+    private val systemConfigSyncService: SystemConfigSyncService
 ) {
 
     private val log = LoggerFactory.getLogger(DomainConfigService::class.java)
@@ -101,6 +103,12 @@ class DomainConfigService(
         }
 
         log.info("Config updated: domain={}, key={}, type={}", domainId, key, valueType)
+        
+        if (domainId == 0L) { // Only sync global configs
+            systemConfigSyncService.syncToRedis(key, value)
+            configEventPublisher.publishConfigChangedEvent(key, value)
+        }
+        
         return getConfig(domainId, key)
     }
 
