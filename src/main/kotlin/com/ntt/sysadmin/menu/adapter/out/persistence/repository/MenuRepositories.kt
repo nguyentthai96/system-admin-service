@@ -41,6 +41,8 @@ interface RoleMenuPermissionRepository : JpaRepository<RoleMenuPermissionEntity,
     fun deleteByRoleIdAndMenuId(roleId: Long, menuId: Long)
 
     fun findByRoleIdInAndMenuIdAndIsGrantedTrue(roleIds: List<Long>, menuId: Long): List<RoleMenuPermissionEntity>
+
+    fun findByMenuIdAndIsGrantedTrue(menuId: Long): List<RoleMenuPermissionEntity>
 }
 
 @Repository

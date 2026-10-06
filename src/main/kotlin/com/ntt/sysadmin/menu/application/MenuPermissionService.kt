@@ -5,6 +5,7 @@ import com.ntt.sysadmin.menu.adapter.`in`.web.dto.*
 import com.ntt.sysadmin.menu.adapter.out.cache.MenuPermissionCacheAdapter
 import com.ntt.sysadmin.menu.adapter.out.persistence.entity.*
 import com.ntt.sysadmin.menu.adapter.out.persistence.repository.*
+import com.ntt.sysadminservice.menu.adapter.out.event.MenuEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,8 +28,14 @@ class MenuPermissionService(
     private val roleMenuPermissionRepository: RoleMenuPermissionRepository,
     private val userMenuOverrideRepository: UserMenuOverrideRepository,
     private val cacheAdapter: MenuPermissionCacheAdapter,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val menuEventPublisher: MenuEventPublisher
 ) {
+
+    companion object {
+        private val MENU_CODE_PATTERN = Regex("^[a-z0-9][a-z0-9-]*$")
+        private const val MENU_CODE_MAX_LENGTH = 50
+    }
 
     private val log = LoggerFactory.getLogger(MenuPermissionService::class.java)
 
@@ -38,6 +45,8 @@ class MenuPermissionService(
 
     @Transactional
     fun createMenuItem(request: CreateMenuRequest): MenuItemEntity {
+        validateMenuCode(request.code)
+
         val entity = MenuItemEntity().apply {
             code = request.code
             name = request.name
@@ -61,6 +70,10 @@ class MenuPermissionService(
         val saved = menuItemRepository.save(entity)
         cacheAdapter.invalidateAll() // Menu structure changed
         log.info("Created menu item: {} ({})", saved.name, saved.code)
+
+        // Publish Kafka event for menu-auth sync
+        publishMenuEvent("CREATED", saved)
+
         return saved
     }
 
@@ -82,6 +95,10 @@ class MenuPermissionService(
 
         val saved = menuItemRepository.save(entity)
         cacheAdapter.invalidateAll()
+
+        // Publish Kafka event for menu-auth sync
+        publishMenuEvent("UPDATED", saved)
+
         return saved
     }
 
@@ -93,6 +110,9 @@ class MenuPermissionService(
         menuItemRepository.save(entity)
         cacheAdapter.invalidateAll()
         log.info("Soft deleted menu item: {}", menuId)
+
+        // Publish Kafka event for menu-auth sync (rule soft-delete)
+        publishMenuEvent("DELETED", entity)
     }
 
     // ===============================
@@ -134,6 +154,15 @@ class MenuPermissionService(
         // Invalidate all cached menus (role change affects multiple users)
         cacheAdapter.invalidateAll()
         log.info("Assigned menu permissions for role {}", roleId)
+
+        // Re-publish events for affected menus
+        val affectedMenuIds = request.menuPermissions.map { it.menuId }.distinct()
+        affectedMenuIds.forEach { menuId ->
+            val menu = menuItemRepository.findById(menuId).orElse(null)
+            if (menu != null) {
+                publishMenuEvent("UPDATED", menu)
+            }
+        }
     }
 
     fun getRoleMenuPermissions(roleId: Long): List<RoleMenuPermissionEntity> {
@@ -389,5 +418,64 @@ class MenuPermissionService(
 
         cacheAdapter.cacheMenuTree(userId, objectMapper.writeValueAsString(response))
         return response
+    }
+
+    // ===============================
+    // Validation & Event Publishing
+    // ===============================
+
+    /**
+     * Validate menuCode follows kebab-case convention (Guard G2).
+     * @throws IllegalArgumentException if menuCode is invalid
+     */
+    private fun validateMenuCode(menuCode: String) {
+        require(menuCode.length <= MENU_CODE_MAX_LENGTH) {
+            "Menu code must be at most $MENU_CODE_MAX_LENGTH characters: $menuCode"
+        }
+        require(MENU_CODE_PATTERN.matches(menuCode)) {
+            "Menu code must be kebab-case (lowercase + hyphens only): $menuCode"
+        }
+    }
+
+    /**
+     * Publish Kafka event when a menu item changes (for menu-auth sync).
+     * Only publishes for MENU type items (not DIRECTORY, BUTTON, etc.).
+     */
+    private fun publishMenuEvent(action: String, menuItem: MenuItemEntity) {
+        if (menuItem.menuType != MenuItemEntity.TYPE_MENU) {
+            log.debug("Skipping Kafka publish for non-MENU type: {} ({})", menuItem.code, menuItem.menuType)
+            return
+        }
+
+        try {
+            val menuId = menuItem.id ?: return
+            val permissions = menuPermissionRepository.findByMenuId(menuId)
+            val rolePerms = roleMenuPermissionRepository.findByMenuIdAndIsGrantedTrue(menuId)
+
+            val permInfos = permissions.map {
+                MenuEventPublisher.PermissionInfo(code = it.permissionCode, name = it.name)
+            }
+
+            val roleAssignments = rolePerms.groupBy { it.roleId }.map { (roleId, perms) ->
+                MenuEventPublisher.RoleAssignment(
+                    roleId = roleId,
+                    roleName = "", // Role name lookup not available in this service
+                    permissions = perms.map { it.permissionCode }
+                )
+            }
+
+            menuEventPublisher.publishMenuPermissionChanged(
+                action = action,
+                menuCode = menuItem.code,
+                menuPath = menuItem.path,
+                menuType = menuItem.menuType,
+                domainId = menuItem.domainId,
+                permissions = permInfos,
+                assignedRoles = roleAssignments
+            )
+        } catch (ex: Exception) {
+            log.error("Failed to publish menu event for menuCode={}: {}", menuItem.code, ex.message, ex)
+            // Non-blocking — menu CRUD should not fail due to Kafka issues
+        }
     }
 }
