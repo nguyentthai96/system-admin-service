@@ -68,6 +68,10 @@ app:
 
   # ── Security (base-security-starter) ──────────────────────────────
   security:
+    public-paths:
+      - /actuator/**
+      - /health
+      - /health/**
     jwt:
       public-key-path: ${JWT_PUBLIC_KEY_PATH:}
       secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-change-in-production}

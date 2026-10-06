@@ -1,6 +1,5 @@
 package com.ntt.systemadminservice.shared.config
 
-import com.ntt.systemadminservice.shared.security.ResourceJwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -9,14 +8,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 /**
  * Security configuration for system-admin-service.
- * Leverages ResourceJwtAuthFilter for JWT validation using auth-service's RSA public key.
+ *
+ * JWT authentication is handled by DefaultSessionValidationFilter from base-security-starter,
+ * which auto-registers as a servlet filter at order -1700 (before Spring Security chain).
+ * This config only defines authorization rules and CORS.
  *
  * Admin endpoints require ADMIN or SUPER_ADMIN roles.
  * Uses STATELESS session — no server-side session storage.
@@ -24,7 +25,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: ResourceJwtAuthFilter,
     @Value("\${app.cors.allowed-origins:http://localhost:3000}")
     private val allowedOrigins: String
 ) {
@@ -60,7 +60,6 @@ class SecurityConfig(
                     // All other endpoints require authentication
                     .anyRequest().authenticated()
             }
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
