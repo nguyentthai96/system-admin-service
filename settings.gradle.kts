@@ -55,3 +55,5 @@ plugins {
 
 rootProject.name = "system-admin-service"
 
+include(":sysadmin-client")
+
